@@ -1,10 +1,13 @@
-const SHEET_NAME = "Inbound Leads"; 
+const SHEET_NAME = "Inbound Leads";
 
 // Map build note keys to Google Drive file IDs
 const BUILD_NOTES = {
   legal: "1NYfuWqNyawS8L1xJQAkuRAjYKRKD0BWy",
-  fire: "1wq-nptuINLzS0Amwani8WM0elKEww-g0"
+  fire: "1wq-nptuINLzS0Amwani8WM0elKEww-g0",
+  pm_ai_age: "1Vq_fDCiU7YgJJsk6FgBk5bIPcVHRehzlAgZAOhU7-Bk",
+  signal_from_noise: "1d7HpAtPbHuAAmr_zxRIkLELOBTWbrRy75xxM1Ve3VCI"
 };
+
 
 const FROM_NAME = "Tenuto Labs";
 
@@ -108,8 +111,17 @@ function doPost(e) {
 }
 
 function sendBuildNoteEmail(data) {
-  const fileId = BUILD_NOTES[data.build_note];
-  if (!fileId) throw new Error("Unknown Build Note");
+ const raw = (data.build_note || "").toString().trim().toLowerCase();
+
+// normalize common formats coming from the UI
+const key = raw
+  .replace(/&/g, "and")
+  .replace(/[:]/g, "")
+  .replace(/[^a-z0-9]+/g, "_")
+  .replace(/^_+|_+$/g, "");
+
+const fileId = BUILD_NOTES[key] || BUILD_NOTES[raw];
+if (!fileId) throw new Error("Unknown Build Note: " + data.build_note);
 
   const file = DriveApp.getFileById(fileId);
 
@@ -144,5 +156,3 @@ function authorizeEmail() {
     "If you received this, Gmail permissions are approved."
   );
 }
-
-
